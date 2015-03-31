@@ -20,6 +20,8 @@ find_program(YAML_CPP_CLANG_FORMAT_EXE NAMES clang-format)
 option(YAML_CPP_BUILD_CONTRIB "Enable yaml-cpp contrib in library" ON)
 option(YAML_CPP_BUILD_TOOLS "Enable parse tools" ON)
 option(YAML_BUILD_SHARED_LIBS "Build yaml-cpp shared library" ${BUILD_SHARED_LIBS})
+option(YAML_CPP_SUPPORT_MERGE_KEYS "Support YAML merge keys ('<<') in yaml-cpp's executable targets. Use '#define YAML_CPP_SUPPORT_MERGE_KEYS' instead when linking from another project." OFF)
+
 
 cmake_dependent_option(YAML_CPP_BUILD_TESTS
   "Enable yaml-cpp tests" ON
@@ -110,7 +112,10 @@ target_compile_options(yaml-cpp
 target_compile_definitions(yaml-cpp
   PRIVATE
     $<${build-windows-dll}:${PROJECT_NAME}_DLL>
-    $<$<NOT:$<BOOL:${YAML_CPP_BUILD_CONTRIB}>>:YAML_CPP_NO_CONTRIB>)
+    $<$<NOT:$<BOOL:${YAML_CPP_BUILD_CONTRIB}>>:YAML_CPP_NO_CONTRIB>
+    $<$<BOOL:${YAML_CPP_SUPPORT_MERGE_KEYS}>:YAML_CPP_SUPPORT_MERGE_KEYS>
+
+    )
 
 target_sources(yaml-cpp
   PRIVATE

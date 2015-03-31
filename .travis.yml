@@ -10,11 +10,13 @@ matrix:
       compiler: gcc
 env:
   - CTEST_OUTPUT_ON_FAILURE=1
+  - YAML_CPP_SUPPORT_MERGE_KEYS=ON
+  - YAML_CPP_SUPPORT_MERGE_KEYS=OFF
 
 before_script:
   - mkdir build
   - cd build
-  - cmake ..
+  - cmake .. -DYAML_CPP_SUPPORT_MERGE_KEYS=$YAML_CPP_SUPPORT_MERGE_KEYS
   - cd ..
 script:
   - cmake --build build
