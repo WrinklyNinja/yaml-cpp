@@ -624,6 +624,23 @@ TEST_F(EmitterTest, ComplexGlobalSettings) {
   ExpectEmit("- key 1: value 1\n  key 2: [a, b, c]\n- [1, 2]:\n    a: b");
 }
 
+TEST_F(EmitterTest, GlobalSettingsNodeStyles) {
+    Node node;
+
+    node = Load("foo:\n"
+                "  - 1\n"
+                "  - 2\n"
+                "  - 3\n"
+                "bar: baz\n");
+
+    out.SetSeqFormat(YAML::Flow);
+    out.SetMapFormat(YAML::Flow);
+
+    out << node;
+
+    ExpectEmit("{foo: [1, 2, 3], bar: baz}");
+}
+
 TEST_F(EmitterTest, Null) {
   out << BeginSeq;
   out << Null;
