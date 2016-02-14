@@ -116,18 +116,48 @@ class node {
     value.add_dependency(*this);
   }
 
+  template <typename Key>
+  inline node* GetValueFromMergeKey(const Key& key, node* currentValue,
+                                    shared_memory_holder pMemory) const {
+    node* mergeValue =
+        static_cast<const node_ref&>(*m_pRef).get(std::string("<<"), pMemory);
+    if (mergeValue) {
+      if (mergeValue->type() == NodeType::Map) {
+        return &mergeValue->get(key, pMemory);
+      } else if (mergeValue->type() == NodeType::Sequence) {
+        for (const_node_iterator it = mergeValue->begin();
+             it != mergeValue->end(); ++it) {
+          if (it->pNode && it->pNode->type() == NodeType::Map) {
+            node* value = it->pNode->get(key, pMemory);
+            if (value && value->type() != NodeType::Undefined) {
+              return value;
+            }
+          }
+        }
+      }
+    }
+    return currentValue;
+  }
+
   // indexing
   template <typename Key>
   node* get(const Key& key, shared_memory_holder pMemory) const {
     // NOTE: this returns a non-const node so that the top-level Node can wrap
     // it, and returns a pointer so that it can be NULL (if there is no such
     // key).
-    return static_cast<const node_ref&>(*m_pRef).get(key, pMemory);
+    node* value = static_cast<const node_ref&>(*m_pRef).get(key, pMemory);
+    if (!value || value->type() == NodeType::Undefined) {
+      return GetValueFromMergeKey(key, value, pMemory);
+    }
+    return value;
   }
   template <typename Key>
   node& get(const Key& key, shared_memory_holder pMemory) {
     node& value = m_pRef->get(key, pMemory);
     value.add_dependency(*this);
+    if (value.type() == NodeType::Undefined) {
+      return *GetValueFromMergeKey(key, &value, pMemory);
+    }
     return value;
   }
   template <typename Key>
