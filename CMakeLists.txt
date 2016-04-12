@@ -121,12 +121,6 @@ include_directories(${YAML_CPP_SOURCE_DIR}/include)
 set(yaml_c_flags ${CMAKE_C_FLAGS})
 set(yaml_cxx_flags ${CMAKE_CXX_FLAGS})
 
-if(BUILD_SHARED_LIBS)
-	set(LABEL_SUFFIX "shared")
-else()
-	set(LABEL_SUFFIX "static")
-endif()
-
 if(APPLE)
 	if(APPLE_UNIVERSAL_BIN)
 		set(CMAKE_OSX_ARCHITECTURES ppc;i386)
@@ -201,18 +195,15 @@ if(MSVC)
 	#    plus set lib suffix for later use and project label accordingly
 	# see http://msdn.microsoft.com/en-us/library/aa278396(v=VS.60).aspx
 	#     http://msdn.microsoft.com/en-us/library/2kzt1wy3(v=VS.71).aspx
-	set(LIB_RT_SUFFIX "md")	# CMake defaults to /MD for MSVC
 	set(LIB_RT_OPTION "/MD")
 	#
 	if(NOT MSVC_SHARED_RT)	# User wants to have static runtime libraries (/MT, /ML)
 		if(MSVC_STHREADED_RT)	# User wants to have old single-threaded static runtime libraries
-			set(LIB_RT_SUFFIX "ml")
 			set(LIB_RT_OPTION "/ML")
 			if(NOT ${MSVC_VERSION} LESS 1400)
 				message(FATAL_ERROR "Single-threaded static runtime libraries (/ML) only available until VS .NET 2003 (7.1).")
 			endif()
 		else()
-			set(LIB_RT_SUFFIX "mt")
 			set(LIB_RT_OPTION "/MT")
 		endif()
 
@@ -227,17 +218,9 @@ if(MSVC)
 			endforeach()
 		endforeach()
 	endif()
-	#
-	set(LABEL_SUFFIX "${LABEL_SUFFIX} ${LIB_RT_SUFFIX}")
 
 	# b) Change prefix for static libraries
 	set(CMAKE_STATIC_LIBRARY_PREFIX "lib")	# to distinguish static libraries from DLL import libs
-
-	# c) Correct suffixes for static libraries
-	if(NOT BUILD_SHARED_LIBS)
-		### General stuff
-		set(LIB_TARGET_SUFFIX "${LIB_SUFFIX}${LIB_RT_SUFFIX}")
-	endif()
 
 	### Project stuff
 	# /W3 = set warning level; see http://msdn.microsoft.com/en-us/library/thxezb7y.aspx
@@ -259,12 +242,12 @@ endif()
 set(INCLUDE_INSTALL_ROOT_DIR include)
 
 set(INCLUDE_INSTALL_DIR ${INCLUDE_INSTALL_ROOT_DIR}/yaml-cpp)
-set(LIB_INSTALL_DIR "${_library_dir}${LIB_SUFFIX}")
+set(LIB_INSTALL_DIR "${_library_dir}")
 
 set(_INSTALL_DESTINATIONS
 	RUNTIME DESTINATION bin
 	LIBRARY DESTINATION ${LIB_INSTALL_DIR}
-	ARCHIVE DESTINATION "lib${LIB_SUFFIX}"
+	ARCHIVE DESTINATION "lib"
 )
 
 
@@ -279,25 +262,12 @@ set_target_properties(yaml-cpp PROPERTIES
 set_target_properties(yaml-cpp PROPERTIES
 	VERSION "${YAML_CPP_VERSION}"
 	SOVERSION "${YAML_CPP_VERSION_MAJOR}.${YAML_CPP_VERSION_MINOR}"
-	PROJECT_LABEL "yaml-cpp ${LABEL_SUFFIX}"
 )
 
 if(IPHONE)
 	set_target_properties(yaml-cpp PROPERTIES
 		XCODE_ATTRIBUTE_IPHONEOS_DEPLOYMENT_TARGET "3.0"
 	)
-endif()
-
-if(MSVC)
-	if(NOT BUILD_SHARED_LIBS)
-		# correct library names
-		set_target_properties(yaml-cpp PROPERTIES
-			DEBUG_POSTFIX "${LIB_TARGET_SUFFIX}d"
-			RELEASE_POSTFIX "${LIB_TARGET_SUFFIX}"
-			MINSIZEREL_POSTFIX "${LIB_TARGET_SUFFIX}"
-			RELWITHDEBINFO_POSTFIX "${LIB_TARGET_SUFFIX}"
-		)
-	endif()
 endif()
 
 install(TARGETS yaml-cpp ${_INSTALL_DESTINATIONS})
