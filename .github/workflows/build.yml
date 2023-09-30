@@ -1,7 +1,7 @@
 name: Github PR
 on:
   push:
-    branches: [ master ]
+    branches: [ master, merge-key-support ]
   pull_request:
     branches: [ master ]
   workflow_dispatch:
@@ -36,7 +36,7 @@ jobs:
         - name: Build Tests
           shell: bash
           run: |
-            cmake ${{ env.CMAKE_GENERATOR }} -S "${{ github.workspace }}" -B build -DCMAKE_CXX_STANDARD=${{ matrix.cxx_standard }} -DYAML_BUILD_SHARED_LIBS=${{ env.YAML_BUILD_SHARED_LIBS }} -DYAML_CPP_BUILD_TESTS=ON
+            cmake ${{ env.CMAKE_GENERATOR }} -S "${{ github.workspace }}" -B build -DCMAKE_CXX_STANDARD=${{ matrix.cxx_standard }} -DYAML_BUILD_SHARED_LIBS=${{ env.YAML_BUILD_SHARED_LIBS }} -DYAML_CPP_BUILD_TESTS=ON -DYAML_CPP_SUPPORT_MERGE_KEYS=ON
             cd build && cmake --build . --parallel ${{ steps.cpu-cores.outputs.count }}
 
         - name: Run Tests
